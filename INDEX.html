@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>LSRS v2.0 – Calculadora de Riesgo Deportivo Ligamentario</title>
+  <style>
+    :root {
+      --border:#d8d8d8;
+      --bg:#f9f9f9;
+      --card-bg:#ffffff;
+      --text:#1a1a1a;
+      --text-dim:#666;
+      --radius:16px;
+      --accent:#1a1a1a;
+      --risk-bajo:#1b5e20;
+      --risk-moderado:#e65100;
+      --risk-alto:#b71c1c;
+      --input-bg:#fff;
+    }
+
+    *{
+      box-sizing:border-box;
+      -webkit-font-smoothing:antialiased;
+      font-family:system-ui,-apple-system,BlinkMacSystemFont,"Inter","Roboto","Segoe UI",sans-serif;
+    }
+
+    body{
+      background:var(--bg);
+      color:var(--text);
+      padding:2rem;
+      display:flex;
+      justify-content:center;
+      min-height:100vh;
+    }
+
+    .wrapper{
+      width:100%;
+      max-width:1000px;
+      display:grid;
+      grid-template-columns:1fr 320px;
+      gap:1.5rem;
+    }
+
+    @media(max-width:880px){
+      .wrapper{
+        grid-template-columns:1fr;
+      }
+    }
+
+    .card{
+      background:var(--card-bg);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      padding:1.5rem 1.25rem;
+      box-shadow:0 24px 48px -12px rgba(0,0,0,0.08);
+    }
+
+    .section-title{
+      font-size:0.8rem;
+      font-weight:600;
+      text-transform:uppercase;
+      letter-spacing:.04em;
+      color:var(--text-dim);
+      margin-bottom:.75rem;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      flex-wrap:wrap;
+    }
+
+    .item-group{
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:1rem 1rem .5rem;
+      background:var(--input-bg);
+      margin-bottom:1rem;
+    }
+
+    .item-row{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      padding:.5rem 0;
+      border-bottom:1px solid var(--border);
+      gap:.75rem;
+      flex-wrap:wrap;
+    }
+
+    .item-row:last-child{
+      border-bottom:none;
+    }
+
+    .item-label{
+      font-size:.9rem;
+      line-height:1.3rem;
+      font-weight:500;
+      color:var(--text);
+      flex:1;
+      min-width:220px;
+    }
+
+    .item-hint{
+      font-size:.75rem;
+      font-weight:400;
+      color:var(--text-dim);
+      line-height:1rem;
+      margin-top:.25rem;
+    }
+
+    .item-input{
+      display:flex;
+      flex-direction:column;
+      align-items:flex-end;
+      min-width:140px;
+    }
+
+    select{
+      width:140px;
+      border:1px solid var(--border);
+      border-radius:8px;
+      padding:.5rem .6rem;
+      font-size:.9rem;
+      background:#fff;
+      color:var(--text);
+      font-weight:500;
+      appearance:none;
+    }
+
+    .calc-header{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      margin-bottom:1rem;
+      flex-wrap:wrap;
+      row-gap:.5rem;
+    }
+
+    .calc-title{
+      font-size:1rem;
+      font-weight:600;
+      line-height:1.3rem;
+      color:var(--text);
+    }
+
+    .calc-sub{
+      font-size:.8rem;
+      font-weight:400;
+      color:var(--text-dim);
+      line-height:1.2rem;
+      max-width:270px;
+    }
+
+    .tag-mini{
+      background:#efefef;
+      border-radius:6px;
+      font-size:.7rem;
+      line-height:1rem;
+      padding:.2rem .4rem;
+      border:1px solid var(--border);
+      font-weight:500;
+      color:var(--text);
+      white-space:nowrap;
+    }
+
+    button#btnCalcular{
+      width:100%;
+      background:var(--accent);
+      color:#fff;
+      border:none;
+      border-radius:10px;
+      padding:.9rem 1rem;
+      font-size:1rem;
+      font-weight:600;
+      cursor:pointer;
+      line-height:1.2rem;
+      margin-top:.5rem;
+    }
+
+    button#btnCalcular:active{
+      transform:scale(.99);
+    }
+
+    .resultado-box{
+      border-radius:var(--radius);
+      border:1px solid var(--border);
+      background:var(--card-bg);
+      padding:1rem 1rem 1.25rem;
+      margin-top:1rem;
+    }
+
+    .resultado-label{
+      font-size:.75rem;
+      font-weight:600;
+      text-transform:uppercase;
+      letter-spacing:.05em;
+      color:var(--text-dim);
+      margin-bottom:.5rem;
+    }
+
+    .resultado-score{
+      font-size:2rem;
+      font-weight:600;
+      line-height:2.2rem;
+      color:var(--text);
+      display:flex;
+      align-items:flex-end;
+      gap:.5rem;
+      flex-wrap:wrap;
+    }
+
+    .resultado-score span.total{
+      font-feature-settings:"tnum";
+    }
+
+    .resultado-riesgo{
+      font-size:1rem;
+      font-weight:600;
+      line-height:1.3rem;
+      padding:.4rem .6rem;
+      border-radius:8px;
+      border:1px solid transparent;
+      display:inline-block;
+      min-width:130px;
+      text-align:center;
+    }
+
+    .riesgo-bajo{
+      color:var(--risk-bajo);
+      background:rgba(27,94,32,0.06);
+      border-color:rgba(27,94,32,0.22);
+    }
+
+    .riesgo-moderado{
+      color:var(--risk-moderado);
+      background:rgba(230,81,0,0.06);
+      border-color:rgba(230,81,0,0.22);
+    }
+
+    .riesgo-alto{
+      color:var(--risk-alto);
+      background:rgba(183,28,28,0.06);
+      border-color:rgba(183,28,28,0.22);
+    }
+
+    .detalle{
+      margin-top:1rem;
+      font-size:.8rem;
+      line-height:1.2rem;
+      color:var(--text-dim);
+    }
+
+    .mini{
+      font-size:.7rem;
+      line-height:1rem;
+      color:var(--text-dim);
+      margin-top:.5rem;
+    }
+
+    .layout-col{
+      display:flex;
+      flex-direction:column;
+      gap:1rem;
+    }
+
+    .cutoffs{
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      background:var(--card-bg);
+      padding:1rem 1rem .75rem;
+    }
+
+    .cutoffs h3{
+      font-size:.8rem;
+      font-weight:600;
+      text-transform:uppercase;
+      color:var(--text-dim);
+      margin:0 0 .75rem 0;
+      letter-spacing:.05em;
+    }
+
+    .cutoffs-row{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      font-size:.8rem;
+      line-height:1.1rem;
+      padding:.4rem 0;
+      border-bottom:1px solid var(--border);
+      flex-wrap:wrap;
+      gap:.5rem;
+    }
+
+    .cutoffs-row:last-child{
+      border-bottom:none;
+    }
+
+    .cutoffs-left{
+      font-weight:500;
+      color:var(--text);
+      min-width:160px;
+    }
+
+    .cutoffs-right{
+      color:var(--text-dim);
+      font-size:.75rem;
+    }
+
+    footer{
+      text-align:center;
+      font-size:.7rem;
+      color:var(--text-dim);
+      margin-top:2rem;
+    }
+  </style>
+</head>
+
+<body>
+  <main class="wrapper">
+    <!-- IZQUIERDA: FORM -->
+    <section class="card">
+      <div class="calc-header">
+        <div>
+          <div class="calc-title">LSRS v2.0 — Calculadora de Riesgo Deportivo Ligamentario</div>
+          <div class="calc-sub">
+            Estratificación de riesgo en atletas operados de reconstrucción ligamentaria / multiligamentaria de rodilla.
+          </div>
+        </div>
+        <div class="tag-mini">Deporte</div>
+      </div>
+
+      <!-- Dominio 1: Clínico / anatómico -->
+      <div class="section-title">
+        <span>1. Perfil anatómico / quirúrgico</span>
+        <span class="mini">Más lesión = más puntaje</span>
+      </div>
+
+      <div class="item-group">
+        <div class="item-row">
+          <div class="item-label">
+            Reconstrucción multiligamentaria (≥2 ligamentos mayores)
+            <div class="item-hint">Ej: LCA + LCM grado III, LCP + PLC.</div>
+          </div>
+          <div class="item-input">
+            <select id="multiLig">
+              <option value="0">No (0 pts)</option>
+              <option value="3">Sí (3 pts)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="item-row">
+          <div class="item-label">
+            Lesión condral y/o meniscal relevante
+            <div class="item-hint">Condral &gt;2 cm² grado 3-4; menisco raíz / radial inestable.</div>
+          </div>
+          <div class="item-input">
+            <select id="lesionAsociada">
+              <option value="0">No (0 pts)</option>
+              <option value="2">Sí (2 pts)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="item-row">
+          <div class="item-label">
+            Cirugía de revisión (re-ruptura / túneles previos)
+            <div class="item-hint">No es la primera reconstrucción en esa rodilla.</div>
+          </div>
+          <div class="item-input">
+            <select id="revision">
+              <option value="0">Primaria (0 pts)</option>
+              <option value="2">Revisión (2 pts)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="item-row">
+          <div class="item-label">
+            Déficit muscular previo &gt;10%
+            <div class="item-hint">LSI cuádriceps o isquios &lt;90% preop.</div>
+          </div>
+          <div class="item-input">
+            <select id="deficitMuscular">
+              <option value="0">No / &lt;10% (0 pts)</option>
+              <option value="1">&gt;10% (1 pt)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dominio 2: Exigencia deportiva -->
+      <div class="section-title">
+        <span>2. Perfil deportivo y carga mecánica</span>
+        <span class="mini">Nivel + deporte + carga</span>
+      </div>
+
+      <div class="item-group">
+        <div class="item-row">
+          <div class="item-label">
+            Nivel competitivo actual
+            <div class="item-hint">Autoidentificación real, no "lo que era antes".</div>
+          </div>
+          <div class="item-input">
+            <select id="nivelCompetitivo">
+              <option value="0">Amateur &lt;3x/sem (0 pts)</option>
+              <option value="1">Semiprofesional (1 pt)</option>
+              <option value="3">Élite / Profesional (3 pts)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="item-row">
+          <div class="item-label">
+            Tipo de deporte
+            <div class="item-hint">
+              Bajo riesgo = ciclismo/natación.<br/>
+              Medio = running / tenis.<br/>
+              Alto = fútbol, rugby, ski, básquet.
+            </div>
+          </div>
+          <div class="item-input">
+            <select id="tipoDeporte">
+              <option value="0">Bajo riesgo (0 pts)</option>
+              <option value="1">Riesgo medio (1 pt)</option>
+              <option value="3">Riesgo alto pivote/contacto (3 pts)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="item-row">
+          <div class="item-label">
+            Frecuencia de carga semanal
+            <div class="item-hint">Sesiones/entrenos totales (campo + gym).</div>
+          </div>
+          <div class="item-input">
+            <select id="frecuencia">
+              <option value="0">&lt;3 veces/sem (0 pts)</option>
+              <option value="1">3–5 veces/sem (1 pt)</option>
+              <option value="2">&gt;5 veces/sem (2 pts)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="item-row">
+          <div class="item-label">
+            Superficie habitual
+            <div class="item-hint">
+              Césped artificial / terreno irregular eleva el riesgo torsional.
+            </div>
+          </div>
+          <div class="item-input">
+            <select id="superficie">
+              <option value="0">Superficie estable / indoor (0 pts)</option>
+              <option value="1">Sintético / irregular (1 pt)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dominio 3: Psicológico / presión -->
+      <div class="section-title">
+        <span>3. Conductual / adherencia</span>
+        <span class="mini">Honesto, sin maquillaje</span>
+      </div>
+
+      <div class="item-group">
+        <div class="item-row">
+          <div class="item-label">
+            Presión externa por retorno precoz
+            <div class="item-hint">Club, contrato, sponsor, selección, familia.</div>
+          </div>
+          <div class="item-input">
+            <select id="presionExterna">
+              <option value="0">No relevante (0 pts)</option>
+              <option value="2">Sí, presión alta (2 pts)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="item-row">
+          <div class="item-label">
+            Ansiedad alta / baja adherencia probable
+            <div class="item-hint">
+              Catastrofización dolor, historial de "no sigo indicaciones".
+            </div>
+          </div>
+          <div class="item-input">
+            <select id="ansiedadAdherencia">
+              <option value="0">No (0 pts)</option>
+              <option value="2">Sí (2 pts)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="item-row">
+          <div class="item-label">
+            Sin soporte especializado (kinesiólogo deportivo / psicología deportiva)
+            <div class="item-hint">
+              No tiene un equipo real detrás acompañando la rehab.
+            </div>
+          </div>
+          <div class="item-input">
+            <select id="soporte">
+              <option value="0">Tiene soporte (0 pts)</option>
+              <option value="1">No tiene soporte (1 pt)</option>
+            </select>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Botón calcular -->
+      <button id="btnCalcular">Calcular riesgo</button>
+
+      <!-- RESULTADO -->
+      <div class="resultado-box" id="resultadoBox">
+        <div class="resultado-label">Resultado actual</div>
+
+        <div class="resultado-score">
+          <span class="total" id="puntajeTotal">0</span>
+          <span style="font-size:.8rem;font-weight:400;color:var(--text-dim);line-height:1rem;">
+            puntos totales
+          </span>
+        </div>
+
+        <div style="margin-top:.75rem;">
+          <div class="resultado-label" style="margin-bottom:.4rem;">Clasificación de riesgo</div>
+          <div id="clasificacion" class="resultado-riesgo riesgo-bajo">Bajo</div>
+        </div>
+
+        <div class="detalle" id="detalleTexto">
+          Bajo riesgo: protocolo estándar de rehabilitación y retorno deportivo progresivo según tiempos biológicos.
+        </div>
+
+        <div class="mini">
+          LSRS v2.0 — Herramienta de apoyo clínico. No reemplaza juicio médico individual.
+        </div>
+      </div>
+    </section>
+
+    <!-- DERECHA: Referencia / interpretación -->
+    <aside class="layout-col">
+      <section class="cutoffs">
+        <h3>Interpretación del puntaje total</h3>
+
+        <div class="cutoffs-row">
+          <div class="cutoffs-left">
+            <span class="tag-mini">0 – 6 pts</span> Bajo
+          </div>
+          <div class="cutoffs-right">
+            Retorno deportivo con cronograma estándar. Bajo riesgo de retraso funcional significativo.
+          </div>
+        </div>
+
+        <div class="cutoffs-row">
+          <div class="cutoffs-left">
+            <span class="tag-mini">7 – 11 pts</span> Moderado
+          </div>
+          <div class="cutoffs-right">
+            Ajustar la progresión de carga, monitoreo kinesiológico y refuerzo psicológico. Educación activa al jugador / staff.
+          </div>
+        </div>
+
+        <div class="cutoffs-row">
+          <div class="cutoffs-left">
+            <span class="tag-mini">≥ 12 pts</span> Alto
+          </div>
+          <div class="cutoffs-right">
+            Riesgo elevado de re-ruptura, sobrecarga precoz o retorno fallido. Evitar retorno acelerado aunque exista presión externa.
+          </div>
+        </div>
+      </section>
+
+      <section class="cutoffs">
+        <h3>Notas clínicas rápidas</h3>
+
+        <div class="cutoffs-row">
+          <div class="cutoffs-left">Multiligamentaria</div>
+          <div class="cutoffs-right">Aumenta rigidez, dolor residual y retraso funcional.</div>
+        </div>
+
+        <div class="cutoffs-row">
+          <div class="cutoffs-left">Élite + deporte pivote</div>
+          <div class="cutoffs-right">Principal motor de riesgo alto (&gt;12 pts) aunque sea primera cirugía.</div>
+        </div>
+
+        <div class="cutoffs-row">
+          <div class="cutoffs-left">Presión externa</div>
+          <div class="cutoffs-right">
+            El jugador que "debe volver sí o sí" casi siempre se sobreexige antes del tiempo biológico.
+          </div>
+        </div>
+      </section>
+
+      <footer>
+        LSRS v2.0 — Uso interno equipo rodilla.<br/>
+        No distribuir sin validación estadística / IRB.
+      </footer>
+    </aside>
+  </main>
+
+  <script>
+    function calcularLSRS(){
+      // DOMINIO CLÍNICO / ANATÓMICO
+      const vMultiLig = parseInt(document.getElementById("multiLig").value);
+      const vLesionAsoc = parseInt(document.getElementById("lesionAsociada").value);
+      const vRevision = parseInt(document.getElementById("revision").value);
+      const vDeficit = parseInt(document.getElementById("deficitMuscular").value);
+
+      // DOMINIO DEPORTIVO
+      const vNivel = parseInt(document.getElementById("nivelCompetitivo").value);
+      const vDeporte = parseInt(document.getElementById("tipoDeporte").value);
+      const vFreq = parseInt(document.getElementById("frecuencia").value);
+      const vSuperficie = parseInt(document.getElementById("superficie").value);
+
+      // DOMINIO CONDUCTUAL
+      const vPresion = parseInt(document.getElementById("presionExterna").value);
+      const vAnsiedad = parseInt(document.getElementById("ansiedadAdherencia").value);
+      const vSoporte = parseInt(document.getElementById("soporte").value);
+
+      // SUMA TOTAL
+      const total = vMultiLig + vLesionAsoc + vRevision + vDeficit
+                  + vNivel + vDeporte + vFreq + vSuperficie
+                  + vPresion + vAnsiedad + vSoporte;
+
+      // CLASIFICACIÓN
+      let categoria = "Bajo";
+      let clase = "riesgo-bajo";
+      let texto = "Bajo riesgo: protocolo estándar de rehabilitación y retorno deportivo progresivo según tiempos biológicos.";
+
+      if(total >= 7 && total <= 11){
+        categoria = "Moderado";
+        clase = "riesgo-moderado";
+        texto = "Riesgo moderado: necesita control cercano, educación explícita al deportista y staff, y progresión de carga vigilada.";
+      }
+
+      if(total >= 12){
+        categoria = "Alto";
+        clase = "riesgo-alto";
+        texto = "Riesgo alto: evitar retorno acelerado aunque exista presión externa. Plan individualizado y vigilancia multidisciplinaria.";
+      }
+
+      // ACTUALIZAR UI
+      document.getElementById("puntajeTotal").textContent = total;
+
+      const clasifEl = document.getElementById("clasificacion");
+      clasifEl.textContent = categoria;
+      clasifEl.className = "resultado-riesgo " + clase;
+
+      document.getElementById("detalleTexto").textContent = texto;
+    }
+
+    document.getElementById("btnCalcular").addEventListener("click", calcularLSRS);
+  </script>
+</body>
+</html>
